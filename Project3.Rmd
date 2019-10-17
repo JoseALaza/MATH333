@@ -1,0 +1,159 @@
+---
+title: 'Project 3: Discrete Random Variables'
+author: "Jose Lazarte"
+date: "October 12, 2019"
+header-includes:
+    - \usepackage{setspace}\doublespacing
+mainfont: Times New Roman
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Simulation
+Utilizing the four random variables studied in class with the parameters of p at 0.4 and a distribution of increasing sizes results as follows:  
+  
+\  
+```{r, echo=FALSE, fig.height=6, message=FALSE, warning=FALSE, results='asis'}
+library(purrr)
+library(knitr)
+library(kableExtra)
+library(papeR)
+options(xtable.comment = FALSE)
+
+nSpace <- c(10,100,1000,1000000)
+bDF <- data.frame()
+biDF <- data.frame()
+gDF <- data.frame()
+pDF <- data.frame()
+#g <- rbernoulli(100, .4)
+#g*1
+for (val in nSpace)
+{
+  berno <- rbernoulli(val,.4)
+  bDF <- rbind(bDF,c(mean(berno),sd(berno)))
+  
+  bi <- rbinom(val,100,.4)
+  biDF <- rbind(biDF,c(mean(bi),sd(bi))) #1000*p = n*p = is expected value or mean 
+  
+  geo <- rgeom(val,.4)
+  gDF <- rbind(gDF,c(mean(geo),sd(geo)))#1-p/p is the expected or mean
+  
+  poi <- rpois(val,25)
+  pDF <- rbind(pDF,c(mean(poi),sd(poi)))
+  if(val==1000)
+  {
+    #hBer <- hist(berno*1,breaks = 2,xlim=c(0,1))
+    hBer <- berno
+    #hBi <- hist(bi, probability = TRUE)
+    #points(1:1000, dbinom(1:1000, 100, .4), col="red")
+    hBi <- bi
+    #hGeo <- hist(geo)
+    hGeo <- geo
+    #hPoi <- hist(poi)
+    hPoi <- poi
+  }
+}
+result <- data.frame(bDF,biDF,gDF,pDF)
+names(result) <- c('Mean','SD','Mean','SD','Mean','SD','Mean','SD')
+rownames(result) <- nSpace
+
+
+kable(result,booktabs=T)%>%
+  add_header_above(c("","Bernoulli"=2,"Binomial"=2,"Geometric"=2,"Poisson"=2))
+
+
+
+
+```
+\    
+
+The following table shows the different means and standard deviations between the four discrete random variables and can be considered an experimental value. The following functions can be seen as the theoretical functions:
+
+### Bernoulli
+The Bernoulli distribution uses the variable $p$ as the probablity of an event occuring, and it is also the expected value.  
+Therefore, $E[X] = p$  
+As for the standard deviation the equation is as follows:  
+$S=\sqrt{p(1-p)}$  
+
+When utilizing the same parameters as the simulation, where probability is 0.4, our experimental mean should approximate 0.4 and the standard deviation should approximate 0.4899. Directly comparing the values, we can see that the larger the sample size the more the theoretical and experimental are to one another supporting the simulation's results
+
+### Binomial
+The Binomial distribution uses the variable $p$ as the probablity of an event occuring, and $n$ as the number of times the event occurs.  
+Therefore, $E[X] = n*p$  
+As for the standard deviation the equation is as follows:  
+$S=\sqrt{np(1-p)}$  
+
+When using the same parameters as the simulation the aforementioned effect of high accuracy is present as the number of trials rises. The theoretical mean and standard deviation using the above functions for the binomial result in a mean of 40 when n is 100 and the probability is 0.4. Furthermore, the standard deviation is a projected 4.8990.
+
+### Geometric
+The Geometric distribution uses the variable $p$ as the probablity of an event occuring.  
+Therefore, $E[X] = \frac{1-p}{p}$  
+As for the standard deviation the equation is as follows:  
+$S=\frac{\sqrt{(1-p)}}{p}$ 
+
+Utilizing the parameter when $p$ is equal to 0.4 the following equations result in a mean and standard deviation of 1.5 and 1.9365, respectively. This theoretical result does align with the simulation results and it also increases in accuracy as the number of trials increases.
+
+### Poisson
+The Poisson distribution uses the variable $\lambda$ as the probablity of an event occuring.  
+Therefore, $E[X] = \lambda$  
+As for the standard deviation the equation is as follows:  
+$S=\sqrt{\lambda}$ 
+
+With the value of 25 corresponding to $\lambda$, the mean and standard deviation equal to 25 and 5, respectively. As previous distributions, the accuracy does in fact rise with the rise in test completed.
+
+## Histogram
+```{r echo=FALSE, fig.height=9.5, fig.width=8, message=FALSE, warning=FALSE, paged.print=TRUE}
+par(mfrow=c(2,1))
+
+hist(hBer*1,breaks = 2,xlim=c(0,1.4), probability = TRUE, main="Histogram of Bernoulli Distribution and PMF",xlab="Generated Values",ylab = "Density and Probability")
+points(.75, (sum(rbernoulli(1000,.4)*1)/1000), col="red", type="h")
+
+hist(hBi, probability = TRUE,main="Histogram of Binomial Distribution and PMF",xlab="Generated Values",ylab = "Density and Probability", ylim = c(0,0.085))
+points(1:1000, dbinom(1:1000, 100, .4), col="red", type="h")
+```
+\newpage
+```{r echo=FALSE, fig.height=9.5, fig.width=8, message=FALSE, warning=FALSE, paged.print=TRUE}
+par(mfrow=c(2,1))
+hist(hGeo, probability = TRUE, breaks=6,main="Histogram of Geometric Distribution and PMF",xlab="Generated Values",ylab = "Density and Probability")
+points(1:1000, dgeom(1:1000, .4), col="red", type="h")
+
+hist(hPoi, probability = TRUE,ylim=c(0,0.08),xlim=c(0,50),breaks=8,main="Histogram of Poisson Distribution and PMF",xlab="Generated Values",ylab = "Density and Probability")
+points(1:1000, dpois(1:1000, 25), col="red", type="h")
+```
+\newpage
+
+### Analysis
+The first histogram on page 3 represents the simulation of a bernoulli distribution completed 1000 times. Although simple it represents the probability $p$ that was entered. In the case of the histogram it was 0.4. This can be represented as the PMF where under the 1 the redline represents a value of 0.4. Although the line was moved for clarity, the approximated value of the PMF results to be the same as the value $p$ which is also the mean.
+
+The second histogram represents a binomial distribution with the red lines signifying PMF after 1000 trials with numbers ranging from 0 to 100. As seen with the PMF the most likely value to occur would be 40 which is also the mean, $n*p$, as for the histogram, it has a somewhat symmetric shape with a slight right skew since the mean is 40.
+
+The following histogram on page 4 represents the Geometric distribution and PMF of $p$ of 0.4 done 1000 times. With a huge right skew this can be expected as the highest frequencies occur with the first or second ocassions. Afterwards the occurrences diminish as the probability of a success after the third or fourth ocasssion become smaller and smaller. The histogram and PMF both follow this pattern and is a key feature in Geometric distributions.
+
+The final histogram is the Poisson histogram. Although similiar to the Binomial histogram, the biggest difference would be the spread which is much more symmetric compared to the binomial, and the mean which is changed to 25 rather than 40. However, the PMF of the Binomial and Poisson has an identical shape with only small differences in first third and final third of the PMF.
+\newpage
+
+## Application
+Utilizing a Poisson Distribution the store simulation can be estimated:
+Where $\lambda$ is 200 average customers  
+365 days in a year as the number of total simulations
+
+```{r echo=TRUE, fig.height=9.5, fig.width=8, message=FALSE, warning=FALSE, paged.print=TRUE}
+sPois<-rpois(365,200)
+```
+
+Using the code above, sPois will hold 365 values that vary in size with the average of 200.  
+We can now continue to the following problem:  
+Where 29.95 is the cost of candles we can now multiply sPois array to receive the total money intake in a generated day. By finding the sum and dividing by 365 we are then able to find the average which is around 6000 dollars. 
+
+```{r echo=TRUE, fig.height=9.5, fig.width=8, message=TRUE, warning=FALSE, comment="", paged.print=TRUE}
+sum(sPois*29.95)/365
+```
+
+To the following problem, a good day of 95% percentile can be obtained using the qpois function. Where 0.95 is the wanted percentile and 200 is the $\lambda$ we receive a value of:  
+```{r echo=TRUE, fig.height=9.5, fig.width=8, message=TRUE, warning=FALSE, paged.print=TRUE,comment=""}
+qpois(.95,200)
+```
+This value is the number of $\lambda$ that is needed for the store to have a "Good Day" of 95th percentile
